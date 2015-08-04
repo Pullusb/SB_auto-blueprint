@@ -1,2 +1,14 @@
-# SB_auto-blueprint
-Blender Addon - Create a blueprint of the selected object in one click
+# SB Auto Blueprint
+
+add the pannel in the 3D view > tools
+
+**/!\ Unstable script**
+
+--------
+
+Work in progress:
+
+Don't use the "WIP" version.
+
+Usually Works, but many problems to patch and sometimes crashes. 
+Be sure to save your scene before launching.
