@@ -18,20 +18,20 @@ Generate a blueprint scene of the selected(s) object(s) in one click !
 add the panel in the 3D view toolbar > create
 
 ### Demo
-from this object:
+from this object:  
 ![panel](https://github.com/Pullusb/images_repo/raw/master/Blender_AutoBlueprint_panel.png)
 
-4 view shows layout
+4 view shows layout  
 ![4views](https://github.com/Pullusb/images_repo/raw/master/plane_BP_4Views.png)
 
-3 views aligned
+3 views aligned  
 ![3views](https://github.com/Pullusb/images_repo/raw/master/plane_BP_3Views.png)
 
 
-important note, the blueprint is done in another scene (your original scene and object are leaved untouched)
+important note, the blueprint is done in another scene (your original scene and object are leaved untouched)  
 ![scene](https://github.com/Pullusb/images_repo/raw/master/Blender_AutoBlueprint_scenes.png)
 
-The generated blueprint might not be perfect, but it'll be a good start and will be easily tweakable trough well prepared freestyle  line set
+The generated blueprint might not be perfect, but it'll be a good start and will be easily tweakable trough well prepared freestyle  line set  
 ![tweaking](https://github.com/Pullusb/images_repo/raw/master/Blender_AutoBlueprint_settings.png)
 
 --------
