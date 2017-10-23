@@ -1,11 +1,11 @@
 #*-* coding:utf-8 *-*
-# ABP -/- Auto-Blueprints V2.8
+# ABP -/- Auto-Blueprints V2.9
 
 bl_info = {
     "name": "Auto blueprint",
     "description": "Generate a blueprint scene of the selected object",
     "author": "Samuel Bernou",
-    "version": (2, 8, 0),
+    "version": (2, 9, 0),
     "blender": (2, 75, 0),
     "location": "View3D > toolbar > Create > auto blueprint",
     "warning": "Instable, may crash blender",
@@ -18,14 +18,15 @@ from mathutils import Vector
 from math import *
 
 #CONVENIENCE VARIABLES
-scn = bpy.context.scene
 C = bpy.context
 D = bpy.data
 O = bpy.ops
 
 #FUNCTIONS
 
-def DuplicateObject(name, copyobj = False, S = bpy.context.scene):
+def DuplicateObject(name, copyobj = False, S = False):
+    if not S:
+        S = bpy.context.scene
     '''Duplicate object with data, link, select and return it'''
     if not copyobj:
         copyobj = bpy.context.object 
@@ -246,6 +247,7 @@ def CreateCam(spawn, orthoSize, S):
 
 def ComputeOrthoSize(LU,RD, X, Z):
     '''Return value of orthographic size'''
+    scn = bpy.context.scene
     resX = scn.render.resolution_x
     resY = scn.render.resolution_y
     h = LU[2] + (-RD[2])
@@ -278,13 +280,15 @@ def RenderFrame(S):
         
 def blueprintIt(scn, srcScn):
     '''Generate blueprint from object'''
-    
+    BorderMargin = srcScn.ABPborderMargin #marge
+
     #select same blueprint values (avoid reset by new scene)
     scn.ABPisOneObject = srcScn.ABPisOneObject
     scn.ABPdrawEdges = srcScn.ABPdrawEdges
     scn.ABPenableBG = srcScn.ABPenableBG
     scn.ABPrenderFinish = srcScn.ABPrenderFinish
     scn.ABPmode = srcScn.ABPmode
+    scn.ABPborderMargin = srcScn.ABPborderMargin
     
     ob = bpy.context.object
     ob.rotation_euler = 0,0,0 # reset rotation
@@ -467,10 +471,13 @@ def blueprintIt(scn, srcScn):
     if srcScn.ABPrenderFinish:
         RenderFrame(scn)
     print('OK')
-    
 
-def initSceneProperties(scn):
-    '''Register scene properties'''
+
+class autoBpOperator(bpy.types.Operator):
+    """Generate Blueprint from selection"""
+    bl_idname = "mesh.autobp"
+    bl_label = "autoBlueprint Operator"
+    bl_options = {'REGISTER'}
 
     """
     ENUM viewtype :
@@ -515,40 +522,19 @@ def initSceneProperties(scn):
     description = "set a world as background (else transparency)",
     default = True
     )
-    
-    '''
-    bpy.types.Scene.ABPenableSolid = bpy.props.BoolProperty(
-    name = "Solid object",
-    description = "Solid view (not only draw)",
-    default = False
+
+    bpy.types.Scene.ABPborderMargin = bpy.props.FloatProperty(
+    name = "Border margin",
+    description = "Margin between content and border of the frame (default is 0.1)",
+    default = 0.1
     )
-    '''
-
-initSceneProperties(bpy.context.scene)
-
-##variables origins equivalent
-'''
-multipartObject = scn.ABPisOneObject 
-BGenable = scn.ABPenableBG
-renderAtEnd = scn.ABPrenderFinish
-drawEdgeMark = scn.ABPdrawEdges
-'''
-solidVisibility = False
-CropToFit = False
-BorderMargin = 0.1
-
-
-class autoBpOperator(bpy.types.Operator):
-    """Generate Blueprint from selection"""
-    bl_idname = "mesh.autobp"
-    bl_label = "autoBlueprint Operator"
-    bl_options = {'REGISTER'}
 
     #@classmethod
     #def poll(cls, context):
     #    return context.object is not None
     
     def execute(self, context):
+        scn = context.scene
         #self.report({'INFO'}, "Blueprints GO")
         objList = [ob for ob in bpy.context.selected_objects if ob.type == 'MESH']
         print(objList)
@@ -632,6 +618,7 @@ class autoBpPanel(bpy.types.Panel):
         scn = context.scene
         col = layout.column()#align=True
         
+        col.prop(scn, 'ABPborderMargin')
         col.prop(scn, 'ABPisOneObject')
         col.prop(scn, 'ABPdrawEdges')
         col.prop(scn, 'ABPenableBG')
