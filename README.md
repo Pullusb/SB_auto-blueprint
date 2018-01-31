@@ -1,6 +1,8 @@
 # Auto Blueprint
 Generate a blueprint scene of the selected(s) object(s) in one click !
-
+  
+**[Download latest](https://raw.githubusercontent.com/Pullusb/SB_auto-blueprint/master/AutoBlueprint.py)** (right click, save Target as)  
+  
 ### Description
 **layouts available:**
 - 2 views aligned: face - side
