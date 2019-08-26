@@ -5,10 +5,10 @@ bl_info = {
     "name": "Auto blueprint",
     "description": "Generate a blueprint scene of the selected object",
     "author": "Samuel Bernou",
-    "version": (3, 0, 0),
-    "blender": (2, 80, 0),
-    "location": "View3D > right-toolbar > Create > auto blueprint",
-    "warning": "",
+    "version": (2, 9, 0),
+    "blender": (2, 75, 0),
+    "location": "View3D > toolbar > Create > auto blueprint",
+    "warning": "Instable, may crash blender",
     "wiki_url": "https://github.com/Pullusb/SB_auto-blueprint",
     "category": "Object" }
     
@@ -24,47 +24,12 @@ O = bpy.ops
 
 #FUNCTIONS
 
-def set_collection(ob, collection, scn=None, unlink=True) :
-    ''' link an object in a collection and create it if necessary, if unlink object is removed from other collections'''
-    if not scn:
-        scn = bpy.context.scene
-    col     = None
-    visible = False
-    linked  = False
- 
-    # check if collection exist or create it
-    for c in bpy.data.collections :
-        if c.name == collection : col = c
-    if not col : col = bpy.data.collections.new(name=collection)
- 
-    # link the collection to the scene's collection if necessary
-    for c in scn.collection.children :
-        if c.name == col.name : visible = True
-    if not visible : scn.collection.children.link(col)
- 
-    # check if the object is already in the collection and link it if necessary
-    for o in col.objects :
-        if o == ob : linked = True
-    if not linked : col.objects.link(ob)
- 
-    # remove object from scene's collection
-    for o in scn.collection.objects :
-        if o == ob : scn.collection.objects.unlink(ob)
- 
-    # if unlink flag we remove the object from other collections
-    if unlink :
-        for c in ob.users_collection :
-            if c.name != collection : c.objects.unlink(ob)
-
-
 def DuplicateObject(name, copyobj = False, S = False):
-    '''Duplicate object with data, link, select and return it'''
     if not S:
         S = bpy.context.scene
-    
+    '''Duplicate object with data, link, select and return it'''
     if not copyobj:
-        copyobj = bpy.context.object
-    
+        copyobj = bpy.context.object 
     # Create new mesh   
     mesh = bpy.data.meshes.new(name)
  
@@ -78,13 +43,10 @@ def DuplicateObject(name, copyobj = False, S = False):
     ob_new.rotation_euler = copyobj.rotation_euler
  
     # Link new object to the given scene and select it
-    set_collection(ob_new, "blueprint")
-    # S.objects.link(ob_new)
+    S.objects.link(ob_new)
     bpy.ops.object.select_all(action='DESELECT')
-    ob_new.select_set(True)
-    #how to make it for specific scene dans mother
-    #S.objects.active = ob_new
-    bpy.context.view_layer.objects.active = ob_new
+    ob_new.select = True
+    S.objects.active = ob_new
  
     return ob_new
 
@@ -110,72 +72,38 @@ def SetFreestyleProp(scn, srcScn):
     if not worldList or not worldName in worldList:
         #first Setting of the world
         scn.world = bpy.data.worlds.new(worldName)
-        scn.world.color = (0.031985, 0.100398, 0.214036)#set base color (for use in workbench mode)
-
-        scn.world.use_nodes = True
-        world_nodes = scn.world.node_tree.nodes
-        world_links = scn.world.node_tree.links
-        bg = None
-
-        for n in world_nodes:
-            if n.type == 'BACKGROUND':
-                bg = n
-
-        x,y = bg.location
-        n_texcoord = world_nodes.new('ShaderNodeTexCoord')
-        n_texcoord.location = (x-1000, y)
-        
-        n_mapping = world_nodes.new('ShaderNodeMapping')
-        n_mapping.rotation[2] = -1.5708#set rotation to -90
-        n_mapping.location = (x-800, y)
-        world_links.new(n_texcoord.outputs[5], n_mapping.inputs[0])#6 is windows output
-
-        n_gradient = world_nodes.new('ShaderNodeTexGradient')
-        n_gradient.gradient_type = 'EASING'
-        n_gradient.location = (x-350, y)
-        world_links.new(n_mapping.outputs[0], n_gradient.inputs[0])
-
-        n_mix = world_nodes.new('ShaderNodeMixRGB')
-        n_mix.inputs['Color1'].default_value = (0.031985, 0.100398, 0.214036, 1)#horizon_color
-        n_mix.inputs['Color2'].default_value = (0.061428, 0.204731, 0.447981, 1)#zenith_color
-        n_mix.location = (x-200, y)
-        world_links.new(n_gradient.outputs[1], n_mix.inputs[0])
-        world_links.new(n_mix.outputs[0], bg.inputs[0])
-
+        scn.world.use_sky_paper = True
+        scn.world.use_sky_blend = True
+        scn.world.use_sky_real = True
+        scn.world.horizon_color = (0.061428, 0.204731, 0.447981)
+        scn.world.zenith_color = (0.031985, 0.100398, 0.214036)
     else:
         #assign existing world
         scn.world = bpy.data.worlds[worldName]
 
     #render option
-    #'BLENDER_WORKBENCH' is good but only plain color as background and need material to add transparency (need to override materials)
-
-    # scn.render.engine = 'BLENDER_EEVEE' # how to hide object with freestyle On in eevee
-    scn.render.engine = 'CYCLES' # disable all object visibility with cycle works
-    scn.cycles.samples = 32 #lower value give grainy lines
-
+    scn.render.engine = 'BLENDER_RENDER' # set renderer to 'blender render' for the new scene
     scn.render.image_settings.color_mode = 'RGBA' #set output frame to RGBA
     scn.render.use_freestyle = True # activate freestyle for the scene
     scn.render.line_thickness = 1.0
 
     #renderlayer_options
-    scn.view_layers["View Layer"].use_solid = False # Pass to True if object have to be visible
-    scn.view_layers["View Layer"].use_halo = False
-    scn.view_layers["View Layer"].use_ztransp = False
+    scn.render.layers["RenderLayer"].use_solid = False # Pass to True if object have to be visible
+    scn.render.layers["RenderLayer"].use_halo = False
+    scn.render.layers["RenderLayer"].use_ztransp = False
 
     if srcScn.ABPenableBG:
-        scn.render.film_transparent = False
-        scn.view_layers["View Layer"].use_sky = True
-
+        scn.render.alpha_mode = 'SKY' #set sky visible
+        scn.render.layers["RenderLayer"].use_sky = True
     else:
-        scn.render.film_transparent = True #set sky as transparent
-        scn.view_layers["View Layer"].use_sky = False
+        scn.render.alpha_mode = 'TRANSPARENT' #set sky as transparent
+        scn.render.layers["RenderLayer"].use_sky = False
 
-    scn.view_layers["View Layer"].use_edge_enhance = False
-    scn.view_layers["View Layer"].use_strand = False
-    scn.view_layers["View Layer"].use_freestyle = True
+    scn.render.layers["RenderLayer"].use_edge_enhance = False
+    scn.render.layers["RenderLayer"].use_strand = False
+    scn.render.layers["RenderLayer"].use_freestyle = True
 
-    # ols : FS = scn.render.layers['RenderLayer'].freestyle_settings
-    FS = bpy.context.view_layer.freestyle_settings
+    FS = scn.render.layers['RenderLayer'].freestyle_settings
     
     #create linesets
     FS.linesets.new("contour")
@@ -191,31 +119,31 @@ def SetFreestyleProp(scn, srcScn):
         l.select_silhouette = False
         l.select_crease = False
         l.linestyle.color = (1,1,1)
-        l.select_by_collection = True
+        l.select_by_group = True
 
     FS.crease_angle = radians(162) # after some test, let user define if mesh is organic or hardsurface to have better result
     # line set 1 - contour
     FS.linesets['contour'].select_contour = True
     FS.linesets['contour'].select_external_contour = True
     FS.linesets['contour'].linestyle.thickness = 3.3
-    FS.linesets['contour'].collection = bpy.data.collections['frontviews']
+    FS.linesets['contour'].group = bpy.data.groups['frontviews']
     
     # line set 2 - inner
     FS.linesets['inner'].select_crease = True
     FS.linesets['inner'].linestyle.thickness = 2
-    FS.linesets['inner'].collection = bpy.data.collections['frontviews']
+    FS.linesets['inner'].group = bpy.data.groups['frontviews']
     if srcScn.ABPdrawEdges: #if user set is owns freestyle mark:
         FS.linesets['inner'].select_edge_mark = True
     
     # line set 3 - backface
     FS.linesets['backface'].select_edge_mark = True
     FS.linesets['backface'].visibility = 'HIDDEN'    
-    FS.linesets['backface'].show_render = True # may swith to False when no member in iso collection
+    FS.linesets['backface'].show_render = True # may swith to False when no member in iso group
     FS.linesets['backface'].linestyle.thickness = 0.8
     FS.linesets['backface'].linestyle.use_dashed_line = True
     FS.linesets['backface'].linestyle.dash1 = 8
     FS.linesets['backface'].linestyle.gap1 = 8
-    FS.linesets['backface'].collection = bpy.data.collections['isoviews']
+    FS.linesets['backface'].group = bpy.data.groups['isoviews']
 
     # line set 4 - bluePrintLines_simple
     FS.linesets['bluePrintLines_simple'].select_contour = True
@@ -224,7 +152,7 @@ def SetFreestyleProp(scn, srcScn):
     FS.linesets['bluePrintLines_simple'].linestyle.geometry_modifiers['Blueprint'].shape = 'SQUARES'
     FS.linesets['bluePrintLines_simple'].linestyle.geometry_modifiers['Blueprint'].backbone_length = 35
     FS.linesets['bluePrintLines_simple'].linestyle.geometry_modifiers['Blueprint'].random_backbone = 0
-    FS.linesets['bluePrintLines_simple'].collection = bpy.data.collections['blueViews']
+    FS.linesets['bluePrintLines_simple'].group = bpy.data.groups['blueViews']
     
     # line set 5 - bluePrintLines_complex
     FS.linesets['bluePrintLines_complex'].select_crease = True
@@ -234,13 +162,13 @@ def SetFreestyleProp(scn, srcScn):
     FS.linesets['bluePrintLines_complex'].linestyle.geometry_modifiers['Blueprint'].shape = 'SQUARES'
     FS.linesets['bluePrintLines_complex'].linestyle.geometry_modifiers['Blueprint'].backbone_length = 6
     FS.linesets['bluePrintLines_complex'].linestyle.geometry_modifiers['Blueprint'].random_backbone = 1
-    FS.linesets['bluePrintLines_complex'].collection = bpy.data.collections['blueViews']
+    FS.linesets['bluePrintLines_complex'].group = bpy.data.groups['blueViews']
     
     # line set 6 - grid
     FS.linesets['grid'].select_edge_mark = True
     FS.linesets['grid'].linestyle.thickness = 0.4
     FS.linesets['grid'].linestyle.alpha = 0.7
-    FS.linesets['grid'].collection = bpy.data.collections['gridViews']
+    FS.linesets['grid'].group = bpy.data.groups['gridViews']
     
 
 def bluename(obj_name):
@@ -265,11 +193,19 @@ def MarkFreestyleEdge(loop=False):
     '''set freestyle line for the object'''
     if loop:
         for i in bpy.context.selected_objects:
-            bpy.context.view_layer.objects.active = i
+            bpy.context.scene.objects.active = i
             FreestyleObject()
     else:
         FreestyleObject()
-
+    
+def Duplicate():
+    '''duplicate object'''
+    obold = bpy.context.object # assign selected object to a var
+    ob = obold.copy()
+    bpy.context.scene.objects.link(ob)
+    # essai de snap de curseur 3D mais... 'context is incorrect' !! > bpy.ops.view3d.snap_selected_to_cursor(use_offset=False)
+    bpy.context.scene.cursor_location = 0,0,0 # set the 3D cursor to center of the scene
+    ob.location = bpy.context.scene.cursor_location   # position object at 3d-cursor
 
 def CheckObject():
     '''check selected objects and make it one if necessary (destructive)'''
@@ -296,7 +232,7 @@ def SetSelectedPivot():
 def CreateCam(spawn, orthoSize, S):
     '''create and set a camera and attach it to the passed scene'''
     spawn[1] = -200
-    bpy.ops.object.camera_add(enter_editmode=False, align='WORLD', location=(spawn), rotation=(1.5708, 0, 0))
+    bpy.ops.object.camera_add(view_align=False, enter_editmode=False, location=(spawn), rotation=(1.5708, 0, 0))
     bpy.context.object.name = "CAM_bp"
     bpy.context.object.data.clip_start = 0.02
     bpy.context.object.data.clip_end = 1000
@@ -327,8 +263,8 @@ def selectOnly(OBname):
     bpy.ops.object.select_all(action='DESELECT')
     try:
         sauce = bpy.data.objects.get(OBname)
-        sauce.select_set(True)
-        bpy.context.view_layer.objects.active = sauce       
+        sauce.select = True
+        bpy.context.scene.objects.active = sauce       
     except:
         print("could not select object {}".format(OBname))
     
@@ -356,7 +292,7 @@ def blueprintIt(scn, srcScn):
     
     ob = bpy.context.object
     ob.rotation_euler = 0,0,0 # reset rotation
-    ob.location = scn.cursor.location
+    ob.location = scn.cursor_location
     SetSelectedPivot()
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True) # apply scale
     # no need to override materials with a zero-alpha if 'solid' disabled in renderlayer parameter)
@@ -472,29 +408,29 @@ def blueprintIt(scn, srcScn):
     coordLU = obCoord + lu
     coordRD = obCoord + rd
     
-    #Set collections
-    collectionList = [g.name for g in bpy.data.collections]
+    #Set groups
+    groupList = [g.name for g in bpy.data.groups]
 
-    #create collections or link
-    if "isoviews" in collectionList:
-        isoV = bpy.data.collections['isoviews']
+    #create groups or link
+    if "isoviews" in groupList:
+        isoV = bpy.data.groups['isoviews']
     else:
-        isoV = bpy.data.collections.new("isoviews")
+        isoV = bpy.data.groups.new("isoviews")
 
-    if "frontviews" in collectionList:
-        frontV = bpy.data.collections["frontviews"]
+    if "frontviews" in groupList:
+        frontV = bpy.data.groups["frontviews"]
     else:
-        frontV = bpy.data.collections.new("frontviews")
+        frontV = bpy.data.groups.new("frontviews")
 
-    if "blueViews" in collectionList:
-        blueV = bpy.data.collections["blueViews"]
+    if "blueViews" in groupList:
+        blueV = bpy.data.groups["blueViews"]
     else:
-        blueV = bpy.data.collections.new("blueViews")
+        blueV = bpy.data.groups.new("blueViews")
     
-    if "gridViews" in collectionList:
-        gridV = bpy.data.collections["gridViews"]
+    if "gridViews" in groupList:
+        gridV = bpy.data.groups["gridViews"]
     else:
-        gridV = bpy.data.collections.new("gridViews")
+        gridV = bpy.data.groups.new("gridViews")
      
     #consecutive links object to respective group    
     #print (blueList)
@@ -507,33 +443,22 @@ def blueprintIt(scn, srcScn):
             blueV.objects.link(o)
         if "BGgrid" in o.name and o.name not in gridV.objects:
             gridV.objects.link(o)
-        '''
-        if not srcScn.ABPkeepObjVisible:
-            # disable visibility to keep only line
-            # cycle settings
-            o.cycles_visibility.camera = False
-            o.cycles_visibility.diffuse = False
-            o.cycles_visibility.glossy = False
-            o.cycles_visibility.shadow = False
-            o.cycles_visibility.scatter = False
-            o.cycles_visibility.transmission = False
-            #override materials with no alpha for eevee or workbench
-        '''
-    bpy.context.scene.cursor.location = coordLU
+
+    bpy.context.scene.cursor_location = coordLU
     bpy.ops.object.empty_add()
     bpy.context.object.name = "Empty_LeftUp_angle"
-    bpy.context.scene.cursor.location = coordRD
+    bpy.context.scene.cursor_location = coordRD
     bpy.ops.object.empty_add()
     bpy.context.object.name = "Empty_RightDown_angle"
 
-    #print ("cursorl:", bpy.context.scene.cursor.location)
+    #print ("cursorl:", bpy.context.scene.cursor_location)
     print ("coordLU:", coordLU)
     print ("coordRD:", coordRD)
 
     Sep(5)
         
     coordMidzone = ([(coordLU[0]+ coordRD[0])/2, 0, (coordLU[2]+ coordRD[2])/2])
-    bpy.context.scene.cursor.location = coordMidzone
+    bpy.context.scene.cursor_location = coordMidzone
 
     orthoSize = ComputeOrthoSize(coordLU, coordRD, X, Z)
     orthoSize = orthoSize + (orthoSize * BorderMargin)
@@ -548,7 +473,7 @@ def blueprintIt(scn, srcScn):
     print('OK')
 
 
-class ABP_OT_autoBpOps(bpy.types.Operator):
+class autoBpOperator(bpy.types.Operator):
     """Generate Blueprint from selection"""
     bl_idname = "mesh.autobp"
     bl_label = "autoBlueprint Operator"
@@ -598,12 +523,6 @@ class ABP_OT_autoBpOps(bpy.types.Operator):
     default = True
     )
 
-    """ bpy.types.Scene.ABPkeepObjVisible = bpy.props.BoolProperty(
-    name = "Keep object visible",
-    description = "let the objects visible under the lines (if unticked, only invisible in cycle for now)",
-    default = False
-    ) """
-
     bpy.types.Scene.ABPborderMargin = bpy.props.FloatProperty(
     name = "Border margin",
     description = "Margin between content and border of the frame (default is 0.1)",
@@ -640,7 +559,7 @@ class ABP_OT_autoBpOps(bpy.types.Operator):
                     self.report({'WARNING'}, errorMsg)
                     return {'CANCELLED'}
                 else:
-                    o.select_set(False)
+                    o.select = False
                 
         mainScreen = bpy.context.screen
         srcScn = bpy.context.scene
@@ -679,14 +598,14 @@ class ABP_OT_autoBpOps(bpy.types.Operator):
     #def modal(self, context, event):
     #def draw(self, context):
     
-class ABP_PT_autoBpPanel(bpy.types.Panel):
+class autoBpPanel(bpy.types.Panel):
     """Blueprints made easy"""
     bl_idname = "VIEW3D_PT_autobp_panel"
     bl_label = "Auto Blueprints"
     #bl_options =  {'DEFAULT_CLOSED'}
     bl_space_type = 'VIEW_3D'
-    bl_region_type = "UI"
-    # bl_context = 'objectmode'
+    bl_region_type = 'TOOLS'
+    bl_context = 'objectmode'
     bl_category = 'Create'
     
     #Panels in ImageEditor are using .poll() instead of bl_context.
@@ -703,23 +622,24 @@ class ABP_PT_autoBpPanel(bpy.types.Panel):
         col.prop(scn, 'ABPisOneObject')
         col.prop(scn, 'ABPdrawEdges')
         col.prop(scn, 'ABPenableBG')
-        # col.prop(scn, 'ABPkeepObjVisible')
         col.prop(scn, 'ABPrenderFinish')
         col.prop(scn, 'ABPmode')
         
         #button
         col = layout.column()
         col.scale_y = 1.5
-        col.operator(ABP_OT_autoBpOps.bl_idname, text = "Blueprint selection", icon = 'RENDER_RESULT')
+        col.operator(autoBpOperator.bl_idname, text = "Blueprint selection", icon = 'RENDER_RESULT')
 
 
 def register():
-    bpy.utils.register_class(ABP_OT_autoBpOps)
-    bpy.utils.register_class(ABP_PT_autoBpPanel)
+    bpy.utils.register_module(__name__)
+    #bpy.utils.register_class(autoBpOperator)
+    #bpy.utils.register_class(autoBpPanel)
 
 def unregister():
-    bpy.utils.unregister_class(ABP_OT_autoBpOps)
-    bpy.utils.unregister_class(ABP_PT_autoBpPanel)
+    bpy.utils.unregister_module(__name__)
+    #bpy.utils.unregister_class(autoBpOperator)
+    #bpy.utils.unregister_class(autoBpPanel)
 
 if __name__ == "__main__":
     register()
