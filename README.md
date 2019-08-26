@@ -1,7 +1,7 @@
 # Auto Blueprint
 Generate a blueprint scene of the selected(s) object(s) in one click !
   
-**[Download](https://raw.githubusercontent.com/Pullusb/SB_auto-blueprint/master/AutoBlueprint.py)** (right click, save Target as)
+**[Download (2.8)](https://raw.githubusercontent.com/Pullusb/SB_auto-blueprint/master/AutoBlueprint.py)** (right click, save Target as)
 
 **[Download older (2.7)](https://raw.githubusercontent.com/Pullusb/SB_auto-blueprint/master/AutoBlueprint_279.py)** (right click, save Target as)
   
