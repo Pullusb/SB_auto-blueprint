@@ -1,10 +1,13 @@
 # Auto Blueprint
 Generate a blueprint scene of the selected(s) object(s) in one click !
   
-**[Download (2.8)](https://raw.githubusercontent.com/Pullusb/SB_auto-blueprint/master/AutoBlueprint.py)** (right click, save Target as)
+**[Download (2.8+)](https://github.com/Pullusb/SB_auto-blueprint/archive/refs/heads/master.zip)** (simple click on link)
 
-**[Download older (2.7)](https://raw.githubusercontent.com/Pullusb/SB_auto-blueprint/master/AutoBlueprint_279.py)** (right click, save Target as)
+**[Download older (blender 2.9-)](https://raw.githubusercontent.com/Pullusb/SB_auto-blueprint/master/AutoBlueprint_279.py)** (right click, save Target as)
   
+
+> This was made for fun and not activelely developped anymore.
+
 ### Description
 **layouts available:**
 - 2 views aligned: face - side
@@ -48,3 +51,11 @@ After further tweaking you can achieve some cool results
 The script usually Works, but many problems to patch and sometimes crashes (if so you may want to reopen and retry).
 It was develloped as an exercise and a hobby, don't have time to work on it anymore.
 So be sure to save your scene before launching ;)
+
+
+---
+## Changelog
+
+3.0.1:
+
+- fix: problem with world node creation
