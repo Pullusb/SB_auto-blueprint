@@ -38,7 +38,7 @@ from this object:
 important note, the blueprint is done in another scene (your original scene and object are leaved untouched)  
 ![scene](https://github.com/Pullusb/images_repo/raw/master/Blender_AutoBlueprint_scenes.png)
 
-The generated blueprint might not be perfect, but it'll be a good start and will be easily tweakable through well prepared freestyle  line set  
+The generated blueprint might not be perfect, but it'll be a good start and will be easily tweakable through well prepared freestyle line set  
 ![tweaking](https://github.com/Pullusb/images_repo/raw/master/Blender_AutoBlueprint_settings.png)
 
 After further tweaking you can achieve some cool results
@@ -49,7 +49,7 @@ After further tweaking you can achieve some cool results
 --------
 **/!\ Unstable, may crash blender**
 The script usually Works, but many problems to patch and sometimes crashes (if so you may want to reopen and retry).
-It was develloped as an exercise and a hobby, don't have time to work on it anymore.
+It was developed as an exercise and a hobby, don't have time to work on it anymore.
 So be sure to save your scene before launching ;)
 
 
