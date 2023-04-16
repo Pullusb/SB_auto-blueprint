@@ -158,21 +158,21 @@ def SetFreestyleProp(scn, srcScn):
     scn.render.line_thickness = 1.0
 
     #renderlayer_options
-    scn.view_layers["View Layer"].use_solid = False # Pass to True if object have to be visible
-    scn.view_layers["View Layer"].use_halo = False
-    scn.view_layers["View Layer"].use_ztransp = False
+    scn.view_layers["ViewLayer"].use_solid = False # Pass to True if object have to be visible
+    #scn.view_layers["ViewLayer"].use_halo = False
+    #scn.view_layers["ViewLayer"].use_ztransp = False
 
     if srcScn.ABPenableBG:
         scn.render.film_transparent = False
-        scn.view_layers["View Layer"].use_sky = True
+        scn.view_layers["ViewLayer"].use_sky = True
 
     else:
         scn.render.film_transparent = True #set sky as transparent
-        scn.view_layers["View Layer"].use_sky = False
+        scn.view_layers["ViewLayer"].use_sky = False
 
-    scn.view_layers["View Layer"].use_edge_enhance = False
-    scn.view_layers["View Layer"].use_strand = False
-    scn.view_layers["View Layer"].use_freestyle = True
+    #scn.view_layers["ViewLayer"].use_edge_enhance = False
+    scn.view_layers["ViewLayer"].use_strand = False
+    scn.view_layers["ViewLayer"].use_freestyle = True
 
     # ols : FS = scn.render.layers['RenderLayer'].freestyle_settings
     FS = bpy.context.view_layer.freestyle_settings
